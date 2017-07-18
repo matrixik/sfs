@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 SSHFS_ROOT="$HOME/sshfs"
 PERSISTENT_CHECK_TIMEOUT=5
@@ -6,21 +6,25 @@ PERSISTENT_CHECK_TIMEOUT=5
 
 if [ "$1" == '' ] ; then
     echo "Usage: $0 user@host:remotepath - Single mount"
-    echo 'Sample: `sfs guest@example.com:` - mounts home directory of guest on exapmle.com into your home on localhost in folder sshfs: ~/sshfs/example.com/guest/'
+    echo 'Sample: `sfs guest@example.com:` - mounts home directory of guest on exapmle.com into your home on localhost in folder sshfs: ~/sshfs/example.com/guest/remotepath'
+    echo '         This way you can mount many different folders from the same host.'
+    echo ''
     echo "Usage: $0 user@host:remotepath -p & - Persistent mount"
     echo 'Sample: `sfs guest@example.com: -p &` - Same as previous sample, but sfs works in background and checks for some files in local mount directory. If there no files found'
-    echo '       it tries to remount remote directory again. Useful for non-stable connections like fucking ukrtelecom or GPRS.'
-    echo '       REQUIRES SSH KEY AUTHENTICATION FOR PROMPTLESS sshfs MOUNT'
+    echo '         it tries to remount remote directory again. Useful for non-stable connections like fucking ukrtelecom or GPRS.'
+    echo '         REQUIRES SSH KEY AUTHENTICATION FOR PROMPTLESS sshfs MOUNT'
     exit 1
 fi
 
 USER=`echo $1 | cut -f 1 -d '@'`
 echo "User: $USER"
-HOST=`echo $1 | cut -f 2 -d '@'`
-HOST=`echo $HOST | cut -f 1 -d ':'`
+REMOTE=`echo $1 | cut -f 2 -d '@'`
+HOST=`echo $REMOTE | cut -f 1 -d ':'`
 echo "Host: $HOST"
+REMOTE_PATH=`echo $REMOTE | cut -f 2 -d ':'`
+echo "Path: $REMOTE_PATH"
 
-SSHFS_PATH="$SSHFS_ROOT/$HOST/$USER"
+SSHFS_PATH="$SSHFS_ROOT/$HOST/$USER$REMOTE_PATH"
 
 mkdir -p $SSHFS_PATH > /dev/null 2>&1
 sshfs $1 $SSHFS_PATH
@@ -32,3 +36,6 @@ if [ "$2" == '-p' ] ; then
         sleep $PERSISTENT_CHECK_TIMEOUT
     done
 fi
+
+echo "Mounted path: $SSHFS_PATH"
+
